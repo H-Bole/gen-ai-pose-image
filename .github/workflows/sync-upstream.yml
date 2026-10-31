@@ -1,0 +1,27 @@
+name: 同步上游（个人 fork，默认关闭）
+
+on:
+  schedule:
+    - cron: '17 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: personal-upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'H-Bole/gen-ai-pose-image' && vars.AUTO_UPSTREAM_SYNC_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: 合并上游 main，冲突时停止并保留 fork 改动
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --method POST repos/H-Bole/gen-ai-pose-image/merge-upstream -f branch=main
